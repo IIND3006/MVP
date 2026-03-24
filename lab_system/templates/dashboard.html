@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — ACAFOXX{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">Dashboard</h1>
+  <span class="page-sub mono">Vista general del sistema</span>
+</div>
+
+<!-- KPI CARDS -->
+<div class="kpi-grid">
+  <div class="kpi-card kpi-green">
+    <div class="kpi-value">{{ total_courses }}</div>
+    <div class="kpi-label">Cursos activos</div>
+    <div class="kpi-deco">◉</div>
+  </div>
+  <div class="kpi-card kpi-blue">
+    <div class="kpi-value">{{ total_inventory }}</div>
+    <div class="kpi-label">Ítems de inventario</div>
+    <div class="kpi-deco">◫</div>
+  </div>
+  <div class="kpi-card kpi-amber">
+    <div class="kpi-value">{{ total_reservations }}</div>
+    <div class="kpi-label">Reservas totales</div>
+    <div class="kpi-deco">◷</div>
+  </div>
+  <div class="kpi-card kpi-purple">
+    <div class="kpi-value">{{ pending_reservations }}</div>
+    <div class="kpi-label">Sesiones pendientes</div>
+    <div class="kpi-deco">◈</div>
+  </div>
+</div>
+
+<!-- ALERTAS DE BAJO STOCK -->
+{% if low_stock_items %}
+<section class="section">
+  <div class="section-header">
+    <h2 class="section-title">⚠ Alertas de Bajo Stock</h2>
+    <a href="{{ url_for('inventory') }}" class="btn-link">Ver inventario completo →</a>
+  </div>
+  <div class="alert-list">
+    {% for item in low_stock_items %}
+    <div class="alert-row">
+      <span class="alert-dot"></span>
+      <span class="alert-name">{{ item.name }}</span>
+      <span class="mono alert-stock">{{ item.stock }} / {{ item.min_stock }} {{ item.unit }}</span>
+      <span class="badge badge-danger">Bajo Stock</span>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% else %}
+<section class="section">
+  <div class="ok-banner">✓ Todos los ítems tienen stock suficiente</div>
+</section>
+{% endif %}
+
+<!-- ACCESOS RÁPIDOS -->
+<section class="section">
+  <h2 class="section-title">Acciones rápidas</h2>
+  <div class="quick-actions">
+    <a href="{{ url_for('add_reservation') }}" class="quick-btn">
+      <span class="qb-icon">+</span>
+      <span>Nueva Reserva</span>
+    </a>
+    <a href="{{ url_for('inventory') }}" class="quick-btn">
+      <span class="qb-icon">◫</span>
+      <span>Ver Inventario</span>
+    </a>
+    <a href="{{ url_for('classes') }}" class="quick-btn">
+      <span class="qb-icon">◉</span>
+      <span>Ver Cursos</span>
+    </a>
+    <a href="{{ url_for('reservations') }}" class="quick-btn">
+      <span class="qb-icon">◷</span>
+      <span>Gestionar Reservas</span>
+    </a>
+  </div>
+</section>
+{% endblock %}

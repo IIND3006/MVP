@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Reservas — ACAFOXX{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">Reservas</h1>
+  <a href="{{ url_for('add_reservation') }}" class="btn-primary">+ Nueva Reserva</a>
+</div>
+
+<div class="table-wrapper">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Curso</th>
+        <th>Profesor/a</th>
+        <th>Laboratorio</th>
+        <th>Fecha</th>
+        <th>Hora</th>
+        <th>Estado</th>
+        <th>Inventario utilizado</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for entry in enriched %}
+      {% set r = entry.reservation %}
+      {% set c = entry.course %}
+      <tr>
+        <td><span class="mono tag">{{ r.reservation_id }}</span></td>
+        <td>
+          {% if c %}
+            <strong>{{ c.name }}</strong><br/>
+            <span class="mono text-muted small">{{ c.code }}</span>
+          {% else %}
+            <span class="text-muted">—</span>
+          {% endif %}
+        </td>
+        <td>{% if c %}{{ c.professor }}{% else %}—{% endif %}</td>
+        <td><span class="mono">{{ r.lab }}</span></td>
+        <td class="mono">{{ r.date_str }}</td>
+        <td class="mono">{{ r.time_str }}</td>
+        <td>
+          {% if r.status == "Completada" %}
+            <span class="badge badge-ok">{{ r.status }}</span>
+          {% elif r.status == "Cancelada" %}
+            <span class="badge badge-grey">{{ r.status }}</span>
+          {% elif r.status == "Confirmada" %}
+            <span class="badge badge-blue">{{ r.status }}</span>
+          {% else %}
+            <span class="badge badge-amber">{{ r.status }}</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if r.inventory_used %}
+            <div class="material-list">
+              {% for used in r.inventory_used %}
+              <span class="material-chip small">{{ used.name }} · {{ used.quantity }} {{ used.unit }}</span>
+              {% endfor %}
+            </div>
+          {% else %}
+            <span class="text-muted">—</span>
+          {% endif %}
+        </td>
+        <td>
+          <div class="action-group">
+            {% if r.status not in ["Completada", "Cancelada"] %}
+            <form method="POST" action="{{ url_for('complete_reservation', reservation_id=r.reservation_id) }}"
+                  onsubmit="return confirm('¿Confirmar práctica completada y descontar inventario?')">
+              <button type="submit" class="btn-sm btn-green">✓ Completar</button>
+            </form>
+            <form method="POST" action="{{ url_for('cancel_reservation', reservation_id=r.reservation_id) }}"
+                  onsubmit="return confirm('¿Cancelar esta reserva?')">
+              <button type="submit" class="btn-sm btn-red">✕ Cancelar</button>
+            </form>
+            {% else %}
+            <span class="text-muted small">Sin acciones</span>
+            {% endif %}
+          </div>
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="9" class="center text-muted">No hay reservas registradas.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

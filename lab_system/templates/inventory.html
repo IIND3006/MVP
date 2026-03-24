@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Inventario — ACAFOXX{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">Inventario</h1>
+  <span class="page-sub mono">{{ items|length }} ítems · {{ categories|length }} categorías</span>
+</div>
+
+{% for category in categories %}
+<section class="section">
+  <h2 class="section-title">{{ category }}</h2>
+  <div class="table-wrapper">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nombre</th>
+          <th>Stock actual</th>
+          <th>Stock mínimo</th>
+          <th>Unidad</th>
+          <th>Estado</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in items if item.category == category %}
+        <tr class="{% if item.is_low_stock() %}row-danger{% endif %}">
+          <td><span class="mono text-muted">{{ item.item_id }}</span></td>
+          <td><strong>{{ item.name }}</strong></td>
+          <td class="mono {% if item.is_low_stock() %}text-danger{% endif %}">{{ item.stock }}</td>
+          <td class="mono">{{ item.min_stock }}</td>
+          <td class="mono">{{ item.unit }}</td>
+          <td>
+            {% if item.is_low_stock() %}
+              <span class="badge badge-danger">Bajo Stock</span>
+            {% else %}
+              <span class="badge badge-ok">OK</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endfor %}
+{% endblock %}

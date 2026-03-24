@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}ACAFOXX Labs{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-icon">⬡</span>
+      <span class="logo-text">ACAFOXX</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('dashboard') }}"     class="nav-item {% if request.endpoint == 'dashboard' %}active{% endif %}">
+        <span class="nav-icon">◈</span> Dashboard
+      </a>
+      <a href="{{ url_for('classes') }}"       class="nav-item {% if request.endpoint == 'classes' %}active{% endif %}">
+        <span class="nav-icon">◉</span> Cursos
+      </a>
+      <a href="{{ url_for('inventory') }}"     class="nav-item {% if request.endpoint == 'inventory' %}active{% endif %}">
+        <span class="nav-icon">◫</span> Inventario
+      </a>
+      <a href="{{ url_for('reservations') }}"  class="nav-item {% if request.endpoint in ['reservations','add_reservation'] %}active{% endif %}">
+        <span class="nav-icon">◷</span> Reservas
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      Sistema de Gestión<br/>
+      <span class="mono">v1.0 · 2026</span>
+    </div>
+  </aside>
+
+  <!-- ── MAIN CONTENT ── -->
+  <main class="main-content">
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-container">
+          {% for category, message in messages %}
+            <div class="flash flash-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+</body>
+</html>

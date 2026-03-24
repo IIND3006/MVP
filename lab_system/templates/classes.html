@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Cursos — ACAFOXX{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">Cursos</h1>
+  <span class="page-sub mono">{{ courses_with_materials|length }} cursos registrados</span>
+</div>
+
+<div class="table-wrapper">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Código</th>
+        <th>Nombre</th>
+        <th>Profesor/a</th>
+        <th>Estudiantes</th>
+        <th>Materiales requeridos</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for entry in courses_with_materials %}
+      {% set course = entry.course %}
+      <tr>
+        <td><span class="mono tag">{{ course.code }}</span></td>
+        <td><strong>{{ course.name }}</strong></td>
+        <td>{{ course.professor }}</td>
+        <td class="center">{{ course.students }}</td>
+        <td>
+          <div class="material-list">
+            {% for mat in entry.materials_detail %}
+            <span class="material-chip">{{ mat.name }} · {{ mat.quantity }} {{ mat.unit }}</span>
+            {% else %}
+            <span class="text-muted">Sin materiales</span>
+            {% endfor %}
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
