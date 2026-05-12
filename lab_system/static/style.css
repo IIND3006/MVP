@@ -114,11 +114,24 @@ body { display: flex; min-height: 100vh; }
 .nav-icon { font-size: 16px; }
 
 .sidebar-footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   padding: 16px 20px 0;
   border-top: 1px solid var(--border);
   font-size: 11px;
   color: var(--text-sub);
-  line-height: 1.8;
+  line-height: 1.35;
+}
+
+.sidebar-footer-logo {
+  flex-shrink: 0;
+  width: auto;
+  height: 36px;
+}
+
+.sidebar-footer-text {
+  min-width: 0;
 }
 
 /* ── PAGE HEADER ─────────────────────────────────────────────────── */
