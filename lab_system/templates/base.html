@@ -29,6 +29,11 @@
       <a href="{{ url_for('reservations') }}"  class="nav-item {% if request.endpoint in ['reservations','add_reservation'] %}active{% endif %}">
         <span class="nav-icon">◷</span> Reservas
       </a>
+      <form method="POST" action="{{ url_for('logout') }}" class="logout-form">
+        <button type="submit" class="nav-item nav-logout">
+          <span class="nav-icon">↳</span> Cerrar sesión
+        </button>
+      </form>
     </nav>
     <div class="sidebar-footer">
       <img
@@ -44,6 +49,9 @@
 
   <!-- ── MAIN CONTENT ── -->
   <main class="main-content">
+    <form method="POST" action="{{ url_for('logout') }}" class="mobile-logout-form">
+      <button type="submit" class="btn-secondary">Cerrar sesión</button>
+    </form>
 
     <!-- Flash messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}

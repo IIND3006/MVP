@@ -3,6 +3,8 @@ app.py - Aplicación Flask principal para el sistema de gestión
 de laboratorios universitarios ACAFOXX.
 
 Rutas:
+  GET/POST /login             → Inicio de sesión
+  POST /logout                → Cerrar sesión
   GET  /                    → Dashboard
   GET  /classes             → Lista de cursos
   GET  /inventory           → Inventario
@@ -13,14 +15,113 @@ Rutas:
   POST /reservations/<id>/cancel   → Cancelar reserva
 """
 
-from flask import Flask, render_template, request, redirect, url_for, flash
+from functools import wraps
+import hashlib
+import hmac
+import os
+from urllib.parse import urlsplit
+
+from flask import Flask, render_template, request, redirect, url_for, flash, session
 import data
 from models import Reservation
 
 app = Flask(__name__)
-app.secret_key = "acafoxx_secret_2026"   # necesario para flash messages
+app.secret_key = os.environ.get("SECRET_KEY", "acafoxx_secret_2026")   # necesario para flash messages
+app.config.update(
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="Lax",
+)
 
 LABS = ["Lab A", "Lab B", "Lab C", "Lab D"]
+PUBLIC_ENDPOINTS = {"login", "static"}
+USERS = {
+    "admin": {
+        "password_hash": "pbkdf2_sha256$260000$8fee557a75fffa9edc19f22bac4b654b$55091723bc6f946d2caf134c572adba6e55c01a78ce345a2860e720b8074f63a",
+        "name": "Administrador",
+    }
+}
+
+
+# ────────────────────────────────────────────────────────────────────────────
+# AUTENTICACIÓN
+# ────────────────────────────────────────────────────────────────────────────
+
+def verify_password(password, stored_hash):
+    """Verify a PBKDF2-SHA256 password hash using constant-time comparison."""
+    try:
+        algorithm, iterations, salt_hex, digest_hex = stored_hash.split("$", 3)
+        if algorithm != "pbkdf2_sha256":
+            return False
+        candidate = hashlib.pbkdf2_hmac(
+            "sha256",
+            password.encode("utf-8"),
+            bytes.fromhex(salt_hex),
+            int(iterations),
+        ).hex()
+    except (TypeError, ValueError):
+        return False
+
+    return hmac.compare_digest(candidate, digest_hex)
+
+
+def is_safe_redirect(target):
+    if not target:
+        return False
+    parsed = urlsplit(target)
+    return parsed.scheme == "" and parsed.netloc == "" and target.startswith("/")
+
+
+def login_required(view):
+    @wraps(view)
+    def wrapped_view(*args, **kwargs):
+        if not session.get("user"):
+            return redirect(url_for("login", next=request.full_path.rstrip("?")))
+        return view(*args, **kwargs)
+    return wrapped_view
+
+
+@app.before_request
+def require_login():
+    if request.endpoint in PUBLIC_ENDPOINTS or session.get("user"):
+        return None
+    return redirect(url_for("login", next=request.full_path.rstrip("?")))
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if session.get("user"):
+        return redirect(url_for("dashboard"))
+
+    if request.method == "POST":
+        username = request.form.get("username", "").strip()
+        password = request.form.get("password", "")
+        next_url = request.form.get("next") or url_for("dashboard")
+        user = USERS.get(username)
+
+        if user and verify_password(password, user["password_hash"]):
+            session.clear()
+            session["user"] = username
+            session["display_name"] = user["name"]
+            flash("Sesión iniciada correctamente.", "success")
+            return redirect(next_url if is_safe_redirect(next_url) else url_for("dashboard"))
+
+        flash("Usuario o contraseña incorrectos.", "error")
+        if is_safe_redirect(next_url):
+            return redirect(url_for("login", next=next_url))
+        return redirect(url_for("login"))
+
+    next_url = request.args.get("next") or url_for("dashboard")
+    if not is_safe_redirect(next_url):
+        next_url = url_for("dashboard")
+    return render_template("login.html", next_url=next_url)
+
+
+@app.route("/logout", methods=["POST"])
+@login_required
+def logout():
+    session.clear()
+    flash("Sesión cerrada correctamente.", "success")
+    return redirect(url_for("login"))
 
 
 # ────────────────────────────────────────────────────────────────────────────
